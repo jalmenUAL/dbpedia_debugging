@@ -1,7 +1,7 @@
 :-use_module(library(http/http_open)).
 :-use_module(library(clpfd)).
 :-use_module(library(clpq)).
-%:-use_module(library(semweb/rdf11)).
+:-use_module(library(semweb/rdf11)).
 :-use_module(library(semweb/sparql_client)).
 :-dynamic num_rule/1.
 :-dynamic rule/3.
@@ -11,8 +11,6 @@
 :-rdf_register_prefix(dbo,'http://dbpedia.org/ontology/',[force(true)]).
 :-rdf_register_prefix(dbp,'http://dbpedia.org/property/',[force(true)]).
 :-rdf_register_prefix(yago,'http://dbpedia.org/class/yago/',[force(true)]).
-
-%cd('/Users/jalmen/Google Drive/Mi unidad/Investigacion/dbpedia-pl').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -52,8 +50,7 @@ conjunct_to_list(A, [A]).
 list_to_conjunct([X],X):-!.
 list_to_conjunct([X|L],(X,PL)):-list_to_conjunct(L,PL).
 
-member_select([X|L],X,L).
-member_select([X|L],Y,[X|L2]):-member_select(L,Y,L2).
+ 
 
 genvars([]).
 genvars([_|L]):-genvars(L).
@@ -68,20 +65,22 @@ included([X|RX],L):-syntactic_member(X,L),included(RX,L).
 clause_gen(_):-retractall(num_rule(_)),assert(num_rule(0)),retractall(rule(_,_,_)),fail.
 clause_gen(Pred):-genvars(Vars), Q=..[Pred|Vars], clause(Q,C),!, 
 			conjunct_to_list(C,LC),
-			generate_rule(LC,WC,L),
+			generate_rule([],LC,WC,L),
 			list_to_conjunct(WC,CC),
 			append(Vars,L,Variables),
 			NQ=..[Pred|Variables],
 			num_rule(N),M is N+1,retract(num_rule(N)),
 			assert(num_rule(M)),assert(rule(M,NQ,CC)),fail.
 
-generate_rule([X],[Y],L):-rdf_weak(X,Y,L).
-generate_rule([X|L],[Y|L2],V):-rdf_weak(X,Y,V1),generate_rule(L,L2,V2),append(V1,V2,V).
-generate_rule(L,L2,V):-member_select(L,rdf(A,P,C),RR),term_variables(rdf(A,P,C),VarsR),
-				rdf_global_id(X:_,P),X\=rdf,X\=rdfs,
+generate_rule(_,[],[],[]):-!.
+generate_rule(First,[X|L],[Y|L2],V):-rdf_weak(X,Y,V1),generate_rule([X|First],L,L2,V2),append(V1,V2,V).
+generate_rule(First,[X|L],L2,V):-X=rdf(A,P,C),term_variables(rdf(A,P,C),VarsR),
+				rdf_global_id(NS:_,P),NS\=rdf,NS\=rdfs,
+				append(First,L,RR),
 				rdfs(RR,Rdfs),
 				term_variables(Rdfs,VarsRR),
-				included(VarsR,VarsRR),generate_rule(RR,L2,V).
+				included(VarsR,VarsRR),
+				generate_rule([X|First],L,L2,V).
 
 rdfs([],[]):-!.
 rdfs([rdf(A,B,C)|L],[rdf(A,B,C)|RL]):-!,rdfs(L,RL).
