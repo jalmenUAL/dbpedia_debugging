@@ -13,7 +13,7 @@
 :-rdf_register_prefix(yago,'http://dbpedia.org/class/yago/',[force(true)]).
 
 %cd('/Users/jalmen/Google Drive/Mi unidad/Investigacion/dbpedia-pl').
-%deb([p('http://dbpedia.org/resource/Switzerland'),p('http://dbpedia.org/resource/San_Marino')],[p('http://dbpedia.org/resource/Italy')]).
+%debdb(p,[p('http://dbpedia.org/resource/Italy')],[],Query,Constraints).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
